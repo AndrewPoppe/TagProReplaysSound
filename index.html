@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<script type="text/javascript" src="./ffmpeg-all-codecs.js"></script>
+	<script type="text/javascript" src="./tester.js"></script>
+</head>
+<body>
+	File 1<input type="file" id="file1" onchange="getFile(event, 0)"><br>
+	File 2<input type="file" id="file2" onchange="getFile(event, 1)"><br>
+	File 3<input type="file" id="file3" onchange="getFile(event, 2)"><br>
+	Movie File<input type="file" id="movie" onchange="getMovie(event)"><br>
+	<button type="button" id="button" onclick="startIt(files, movie)">Run It</button>
+</body>
+</html>

@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<script type="text/javascript" src="./ffmpeg-all-codecs.js"></script>
+	<script type="text/javascript" src="./raw_file_parser.js"></script>
+	<script type="text/javascript" src="./create_ffmpeg_call.js"></script>
+	<script type="text/javascript" src="./page.js"></script>
+</head>
+<body>
+	Raw File:   <input type="file" id="file" onchange="getFile(event, )"><br>
+	Movie File: <input type="file" id="movie" onchange="getMovie(event)"><br>
+	<button type="button" id="button" onclick="doIt(raw, movie)">Run It</button>
+</body>
+</html>
