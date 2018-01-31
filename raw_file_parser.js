@@ -690,7 +690,7 @@ let findClosestBall = function(replay, x, y, frame) {
 /*
 	gets distance between two points
 	x1, y1, x2, y2: 	pixel coordinates for the two points
-	returns: 	Euclidean distance in pixels
+	returns: 			Euclidean distance in pixels
 */
 let getDistance = function(x1, y1, x2, y2) {
 	return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
