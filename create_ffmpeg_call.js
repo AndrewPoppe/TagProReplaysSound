@@ -183,7 +183,7 @@ let createFfmpegEvent = function(event) {
 	returns: 	new volume, float between 0 and 1
 */
 let scaleVolume = function(volume, distance) {
-	let maxDistance = 710,
+	let maxDistance = 280,
 		scaleFactor = 1;
 	if(distance <= 0) return volume;
 	if(distance > maxDistance) return 0;

@@ -8,6 +8,7 @@
 	}
 */
 let parseRawFile = function(replay) {
+	console.log('parsing');
 	let soundEvents = [];
 	replay.clockMS = convertClock(replay.clock);
 	soundEvents = soundEvents.concat(getBombEvents(replay));
@@ -127,13 +128,10 @@ let getBoostEvents = function(replay) {
 	events.forEach(event => {
 		let soundEventName,
 			soundEvent = {};
-		if(inViewport(replay[me], event.x*40, event.y*40, event.frame)) {
-			soundEventName = event.p.me === "me" ? "burst" : "burstOther";
-			soundEvent = Object.assign({}, audioEventLookup[soundEventName]);
-			soundEvent.distance = getDistance(replay[me].x[event.frame], replay[me].y[event.frame], event.x*40, event.y*40);
-			soundEvent.time = replay.clockMS[event.frame];
-			soundEvents.push(soundEvent);
-		}
+		soundEventName = "burst";
+		soundEvent = Object.assign({}, audioEventLookup[soundEventName]);
+		soundEvent.time = replay.clockMS[event.frame];
+		soundEvents.push(soundEvent);
 	})
 	return soundEvents;
 }
@@ -153,30 +151,39 @@ let getBoostEventsRaw = function(replay) {
 
 
 /*
-	finds raw boost events for a given tile. this will include "boundary" events caused by tiles coming into viewport
-	in a different state than was last seen. those will need to be removed.
+	finds raw boost events for a given tile only if "you" were the closest ball to the 
+	boost on the previous frame. 
 	tile: 		tile object
 	replay: 	replay object
 	returns: 	array of raw boost event objects, which each look like this:
 		{
 			x: x, (in tiles)
 			y: y, (in tiles)
-			p: closest player object (from findClosestBall)
 			frame: frame index
 		}
 */
 let getBoostEventsTile = function(tile, replay) {
 	let events = [],
-		event = {};
+		event = {},
+		closestBall,
+		tileMatches,
+		previousDistance;
 	for(let i = 1; i < tile.value.length; i++) {
 		if(typeof(tile.value[i]) === "string" && typeof(tile.value[i-1]) !== "string") {
-			event = {
-						x: tile.x,
-						y: tile.y,
-						p: findClosestBall(replay, tile.x, tile.y, i-1),
-						frame: i
-					};
-			events.push(event);
+			closestBall = findClosestBall(replay, tile.x, tile.y, i-1);
+			tileMatches = tile.value[i] < 14 || 
+						  (tile.value[i] >= 14 && tile.value[i] < 15 && closestBall.team[i] === 1) ||
+						  closestBall.team[i] === 2;
+			//previousDistance = getDistance(closestBall.x[i-1], closestBall.y[i-1], tile.x*40, tile.y*40);
+			//if(closestBall.me === "me" && tileMatches && previousDistance >= (19+16)) {
+			if(closestBall.me === "me" && tileMatches) {
+				event = {
+							x: tile.x,
+							y: tile.y,
+							frame: i
+						};
+				events.push(event);
+			}
 		}
 	}
 	return events;
@@ -292,11 +299,10 @@ let getBombEvents = function(replay) {
 		let frame = getFrame(bomb.time, replay.clock),
 			soundEventName,
 			soundEvent,
-			distance,
-			me = replay[getMe(replay)];
-		if(frame > 0 && inViewport(me, bomb.x, bomb.y, frame)) {
+			me = replay[getMe(replay)]
 			distance = getDistance(me.x[frame], me.y[frame], bomb.x, bomb.y);
-			soundEventName = distance < 80 ? "dynamite" : "dynamiteOther";
+		if(frame > 0 && distance <= 280) {
+			soundEventName = "dynamite";
 			soundEvent = Object.assign({}, audioEventLookup[soundEventName]);
 			soundEvent.time = replay.clockMS[frame];
 			soundEvent.distance = distance;
@@ -324,20 +330,14 @@ let getPopEvents = function(replay) {
 	events.forEach(event => {
 		let soundEventName,
 			soundEvent = {},
-			distance = getDistance(me.x[event.frame], me.y[event.frame], event.x, event.y);
-		if(event.me) {
+			distance = getDistance(me.x[event.frame], me.y[event.frame], event.x, event.y),
+			kill =  distance < 50 && 
+					event.team !== me.team[event.frame] && 
+					(replay[event.id].flag[event.frame-1] !== null || me.tagpro[event.frame]);
+		if(event.me || kill) {
 			soundEventName = "pop";
-		} else if(inViewport(me, event.x, event.y, event.frame)) {
-			if(distance < 60 && event.team !== me.team[event.frame] && (replay[event.id].flag[event.frame-1] !== null || me.tagpro[event.frame])) {
-				soundEventName = "pop";
-			} else {
-				soundEventName = "popOther";
-			}
-		}
-		if(soundEventName) {
 			soundEvent = Object.assign({}, audioEventLookup[soundEventName]);
 			soundEvent.time = replay.clockMS[event.frame];
-			soundEvent.distance = distance;
 			soundEvents.push(soundEvent);
 		}
 	});
@@ -409,17 +409,7 @@ let getPortalEvents = function(replay) {
 			distance;
 		if(event.p.me === "me") {
 			soundEventName = "portal";
-		} else if(inViewport(me, event.x*40, event.y*40, event.frame)) {
-			soundEventName = "portalOther";
-			distance = getDistance(me.x[event.frame], me.y[event.frame], event.x*40, event.y*40);
-		} else if(inViewport(me, event.p.x[event.frame+1], event.p.y[event.frame+1], event.frame)) {
-			soundEventName = "portalOther";
-			distance = getDistance(me.x[event.frame+1], me.y[event.frame+1], event.p.x[event.frame+1], event.p.y[event.frame+1]);
-		}
-
-		if(soundEventName) {	
 			soundEvent = Object.assign({}, audioEventLookup[soundEventName]);
-			soundEvent.distance = distance;
 			soundEvent.time = replay.clockMS[event.frame];
 			soundEvents.push(soundEvent);
 		}
@@ -442,8 +432,7 @@ let getPortalEventsRaw = function(replay) {
 
 
 /*
-	finds raw portal events for a given tile. this will include "boundary" events caused by tiles coming into viewport
-	in a different state than was last seen. those will need to be removed.
+	finds raw portal events for a given tile.
 	tile: 		tile object
 	replay: 	replay object
 	returns: 	array of raw portal event objects, which each look like this:
@@ -487,23 +476,19 @@ let getPowerupEvents = function(replay) {
 		soundEvents = [],
 		me = replay[getMe(replay)];
 	events.forEach(event => {
+		if(event.frame === 0) return; 
 		let soundEventName,
 			soundEvent = {},
-			distance = getDistance(me.x[event.frame], me.y[event.frame], event.x*40, event.y*40);
-		if(!inViewport(me, event.x*40, event.y*40, event.frame)) return;
-		let f = event.frame,
-			gotTP = me.tagpro[f] && !me.tagpro[f-1],
-			gotJJ = me.grip[f] && !me.grip[f-1],
-			gotRB = me.bomb[f] && !me.bomb[f-1];
-		if(distance < 50 && (gotTP || gotJJ || gotRB)) {
+			distance = 			getDistance(me.x[event.frame], me.y[event.frame], event.x*40, event.y*40),
+			previousDistance =  getDistance(me.x[event.frame - 1], me.y[event.frame - 1], event.x*40, event.y*40),
+			isInPowerup = distance <= (19 + 15),
+			wasInPowerup = distance > (19 + 10); // add some leeway for inaccuracy in TPR's ball locations
+		if(isInPowerup && !wasInPowerup){
 			soundEventName = "powerup";
-		} else {
-			soundEventName = "powerupOther";
+			soundEvent = Object.assign({}, audioEventLookup[soundEventName]);
+			soundEvent.time = replay.clockMS[event.frame];
+			soundEvents.push(soundEvent);
 		}
-		soundEvent = Object.assign({}, audioEventLookup[soundEventName]);
-		soundEvent.time = replay.clockMS[event.frame];
-		soundEvent.distance = distance;
-		soundEvents.push(soundEvent);
 	});
 	return soundEvents;
 }
@@ -562,17 +547,13 @@ let getPowerupEventsRaw = function(replay) {
 */
 let getButtonEvents = function(replay) {
 	let events = getButtonEventsRaw(replay),
-		soundEvents = [],
-		me = replay[getMe(replay)];
+		soundEvents = [];
 	events.forEach(event => {
 		let soundEventName,
-			soundEvent = {},
-			distance = getDistance(me.x[event.frame], me.y[event.frame], event.x*40, event.y*40);
-		if(!inViewport(me, event.x*40, event.y*40, event.frame)) return;
-		soundEventName = "switch" + event.type + (replay[event.p].me === "me" ? "" : "Other");
+			soundEvent = {};
+		soundEventName = "switch" + event.type;
 		soundEvent = Object.assign({}, audioEventLookup[soundEventName]);
 		soundEvent.time = replay.clockMS[event.frame];
-		soundEvent.distance = distance;
 		soundEvents.push(soundEvent);
 	});
 	return soundEvents;
@@ -588,34 +569,28 @@ let getButtonEvents = function(replay) {
 			x: x, (in tiles)
 			y: y, (in tiles)
 			type: string ("On" or "Off")
-			p: player associated with the event
 			frame: frame index
 		}
 */
 let getButtonEventsTile = function(tile, replay) {
 	let events = [],
 		event,
-		players = getPlayers(replay);
-
-	players.forEach(player => {
-		let p = replay[player],
-			type,
-			current,
-			previous = isBallOnButton(p.x[0], p.y[0], tile.x*40, tile.y*40);
-		for(let i = 1; i < replay.clock.length; i++) {
-			current = isBallOnButton(p.x[i], p.y[i], tile.x*40, tile.y*40);
-			if(current === previous) continue;
-			type = current ? "On" : "Off";
-			events.push({
-				x: tile.x,
-				y: tile.y,
-				type: type,
-				p: player,
-				frame: i
-			});
-			previous = current;
-		}
-	});
+		me = replay[getMe(replay)],
+		type,
+		current,
+		previous = isBallOnButton(me.x[0], me.y[0], tile.x*40, tile.y*40);
+	for(let i = 1; i < replay.clock.length; i++) {
+		current = isBallOnButton(me.x[i], me.y[i], tile.x*40, tile.y*40);
+		if(current === previous) continue;
+		type = current ? "On" : "Off";
+		events.push({
+			x: tile.x,
+			y: tile.y,
+			type: type,
+			frame: i
+		});
+		previous = current;
+	};
 	return events;
 }
 
@@ -706,7 +681,7 @@ let getDistance = function(x1, y1, x2, y2) {
 let getDynamicTiles = function(replay, codes) {
 	let tiles = [];
 	codes.forEach(code => {
-		tiles = tiles.concat(replay.floorTiles.filter(tile => tile.value[0] >= code && tile.value[0] < (code + 1)))
+		tiles = tiles.concat(replay.floorTiles.filter(tile => tile.value[0] >= code && tile.value[0] < (code + 1)));
 	})
 	return tiles;
 }
@@ -808,30 +783,24 @@ let inViewport = function(me, x, y, frame) {
 
 /*
 	Lookup object for audio event types
+	This can probably be done away with now that things were simplified so much. 
 */
 	let audioEventLookup = {
 		alert:					{ sound: "alert", 			volume: 0.25,	scale: false },
 		burst:					{ sound: "burst", 			volume: 1, 		scale: false },
-		burstOther:				{ sound: "burst", 			volume: 0.25, 	scale: true  },				
 		cheer:					{ sound: "cheering", 		volume: 1, 		scale: false },
 		countdown:				{ sound: "countdown", 		volume: 1, 		scale: false },
 		degreeup:				{ sound: "degreeup", 		volume: 1, 		scale: false },
 		drop:					{ sound: "drop", 			volume: 1, 		scale: false },
-		dynamite:				{ sound: "explosion", 		volume: 1, 		scale: false },
-		dynamiteOther:			{ sound: "explosion", 		volume: 0.25, 	scale: true  },
+		dynamite:				{ sound: "explosion", 		volume: 1, 		scale: true  },
 		friendlyalert:			{ sound: "friendlyalert", 	volume: 0.5, 	scale: false },
 		friendlydrop:			{ sound: "friendlydrop", 	volume: 1, 		scale: false },
 		pop:					{ sound: "pop", 			volume: 1, 		scale: false },
-		popOther:				{ sound: "pop", 			volume: 0.25, 	scale: true  },
 		portal:					{ sound: "teleport", 		volume: 1, 		scale: false },
-		portalOther:			{ sound: "teleport", 		volume: 0.25, 	scale: true  },
 		powerup:				{ sound: "powerup", 		volume: 1, 		scale: false },
-		powerupOther:			{ sound: "powerup", 		volume: 0.25, 	scale: true  },
 		sigh:					{ sound: "sigh", 			volume: 0.75, 	scale: false },
 		switchOff:				{ sound: "click", 			volume: 0.2, 	scale: false },
-		switchOffOther:			{ sound: "click", 			volume: 0.05, 	scale: true  },
 		switchOn:				{ sound: "click", 			volume: 0.5, 	scale: false },
-		switchOnOther:			{ sound: "click", 			volume: 0.125, 	scale: true  }
 	};
 
 
