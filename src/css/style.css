@@ -1,6 +1,7 @@
 
 h1 {
 	margin-left: 10px;
+	float: left;
 }
 
 html {
@@ -32,11 +33,11 @@ th {
 }
 
 .first, .second {
-	width: 40%;
+	width: 45%;
 }
 
 .third {
-	width: 20%;
+	width: 10%;
 }
 
 table {
@@ -119,6 +120,30 @@ span {
 
 .ui-droppable-hover {
 	background-color: #339933;
+}
+
+.button-div {
+	float: right;
+	display: table;
+	height: 100%;
+}
+
+.child-div {
+	display: table-cell;
+	vertical-align: middle;
+}
+
+.control-button {
+	background-color: #ffffff00;
+	border: none;
+}
+
+.control-button:hover {
+	background-color: #999999;
+}
+
+.no-close .ui-dialog-titlebar-close {
+  display: none;
 }
 
 

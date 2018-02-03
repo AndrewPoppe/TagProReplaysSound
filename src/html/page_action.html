@@ -2,22 +2,35 @@
 <html>
 <head>
 	<title>TagPro Replays Sound</title>
-	<link rel="stylesheet" type="text/css" href="../css/style.css">
+	<link rel="stylesheet" type="text/css" href="/lib/jquery-ui/jquery-ui.css">
+	<link rel="stylesheet" type="text/css" href="/src/css/style.css">
 	<script type="text/javascript" src="/lib/jquery.min.js"></script>
-	<script type="text/javascript" src="/lib/jquery-ui.min.js"></script>
+	<script type="text/javascript" src="/lib/jquery-ui/jquery-ui.min.js"></script>
 	<script type="text/javascript" src="/lib/ffmpeg-all-codecs.js"></script>
 	<script type="text/javascript" src="/lib/FileSaver.min.js"></script>
 </head>
 <body>
 	<div class="header">
-		<h1>TagPro Replays Sound</h1>		
+		<h1>TagPro Replays Sound</h1>
+		<div class="button-div">
+			<div class="child-div"><button id="options-button" class="control-button"><img src="/icons/settings-work-tool.png"></button></div>
+		</div>
+		<div class="button-div">
+			<div class="child-div"><button id="upload-button" class="control-button"><img src="/icons/upload-button.png"></button></div>
+		</div>
+		<div id="options-dialog" title="Settings" style="display: none;">
+			<p>
+			  <label for="ram-chooser">Set maximum RAM in MB:</label>
+			  <input id="ram-chooser" name="MAXRAM">
+			</p>
+		</div>		
 	</div>
 	<div id="main-div">
 		<br>
 		<br>
 		
 		<!-- Matched Container -->
-		<div class="container" id="matched-container">
+		<div class="container" id="matched-container" style="display: none">
 			<h2>Matched Files</h2>
 			<br>
 			<table class="matched" id="match-table" class="sortable">
@@ -27,26 +40,20 @@
 				    <col class="third">
 				</colgroup>
 				<tr><th>Raw</th><th>Rendered</th><th> </th></tr>
-				<tr><td class="raw">Raw</td><td class="ren">webm</td><td><button>Download</button></td></tr>
-				<tr><td class="raw">Raw</td><td class="ren">webm</td><td><button>Download</button></td></tr>
 			</table>
 		</div>
 
 		<!-- Unmatched Container -->
-		<div class="container" id="unmatched-container">
+		<div class="container" id="unmatched-container" style="display: none">
 			<h2>Unmatched</h2> 
 			<span>Drag to match</span>
 			<br>
 			<div id="unmatched-div">
 				<table id="unmatched-raw" class="unmatched" style="">
 					<tr><th>Raw</th></tr>
-					<tr><td class="uraw draggable droppable" name="Raw 1">Raw 1</td></tr>
-					<tr><td class="uraw draggable droppable" name="Raw 2">Raw 2</td></tr>
 				</table>
 				<table id="unmatched-ren" class="unmatched" style="margin-left: 10%">
 					<tr><th>Rendered</th></tr>
-					<tr><td class="uren draggable droppable" name="webm 1">webm 1</td></tr>
-					<tr><td class="uren draggable droppable" name="webm 2">webm 2</td></tr>
 				</table>
 			</div>
 			<br>
@@ -55,8 +62,11 @@
 
 
 		<input id="file-upload" type="file" name="name" style="display: none;" accept=".txt, .webm" multiple>
-		<button id="upload-button">Load Replay Files</button>
 	</div>
+	<script type="text/javascript" src="/src/js/raw_file_parser.js"></script>
+	<script type="text/javascript" src="/src/js/create_ffmpeg_call.js"></script>
+	<script type="text/javascript" src="/src/js/load_files.js"></script>
+	<script type="text/javascript" src="/src/js/run_ffmpeg.js"></script>
 	<script type="text/javascript" src="/src/js/page_action.js"></script>
 </body>
 </html>

@@ -216,3 +216,33 @@ let soundObjectLookup = {
 		sigh:					{ name: "sigh", 			file: "sigh.mp3", 			data: 	new Uint8Array() },
 		teleport:				{ name: "teleport", 		file: "teleport.mp3", 		data: 	new Uint8Array() }
 }
+
+/*
+	get file contents for sound files
+	soundObjectLookup: 	soundObjectLookup object
+	returns: nothing, it updates contents of the input object
+*/
+let getSoundFileContents = function(soundObjectLookup) {
+	let sound,
+		oReq,
+		i = 0,
+		keys = Object.keys(soundObjectLookup);
+	oReq = new XMLHttpRequest();
+	oReq.onload = function(e) {
+		soundObjectLookup[keys[i]].data = new Uint8Array(oReq.response);
+		i++;
+		if(i >= keys.length) return;
+		sound = soundObjectLookup[keys[i]];
+		oReq.open("GET", "/sounds/" + sound.file);
+		oReq.responseType = "arraybuffer";
+		oReq.send();
+	}
+	sound = soundObjectLookup[keys[i]];
+	oReq.open("GET", "/sounds/" + sound.file);
+	oReq.responseType = "arraybuffer";
+	oReq.send();
+}
+
+getSoundFileContents(soundObjectLookup);
+
+
