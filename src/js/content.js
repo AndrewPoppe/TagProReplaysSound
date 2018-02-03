@@ -1,0 +1,1 @@
+chrome.runtime.sendMessage({type: 'view'}, function(response) {console.log(response.message);});

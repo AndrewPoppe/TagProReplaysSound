@@ -1,0 +1,50 @@
+{
+  "manifest_version": 2,
+  "name": "TagProReplaysSound",
+  "version": "0.0.1",
+  "description": "Add sound to your rendered TagPro Replays",
+  "permissions": [
+    "storage",
+    "unlimitedStorage",
+    "activeTab",
+    "notifications"
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "19": "icons/icon19.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "options_page": "src/html/page_action.html",
+  "page_action": {
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "19": "icons/icon19.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "default_title": "TagPro Replays Sounds"
+  },
+  "background": {
+    "scripts": [
+      "src/js/background.js"
+    ]
+  },
+  "content_scripts": [{
+    "js": [
+      "src/js/content.js"
+    ],
+    "matches": [
+      "http://*.koalabeast.com/*",
+      "http://*.newcompte.fr/*",
+      "http://tangent.jukejuice.com/*"
+    ],
+    "run_at": "document_end"
+  }],
+  "web_accessible_resources": [
+    "sounds/*.mp3",
+    "src/html/*.html",
+    "src/css/*.css",
+    "src/js/*.js"
+  ]
+}
