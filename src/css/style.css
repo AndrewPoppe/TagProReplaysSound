@@ -1,4 +1,8 @@
 
+h1 {
+	margin-left: 10px;
+}
+
 html {
     font-size: 20px;
     min-height: 100%;
@@ -11,7 +15,6 @@ body {
     font: 20px sans-serif;
     margin-bottom: 180px;
     min-height: 100%;
-    height: 1000px;
 }
 
 th, td {
@@ -19,11 +22,13 @@ th, td {
 	text-align: left;
 	border-spacing: 2px;
 	border-collapse: collapse;
+	font-size: 13px;
 }
 
 th {
 	border-bottom: 1px solid #aaaaaa;
 	border-collapse: collapse;
+	font-size: 15px;
 }
 
 .first, .second {
@@ -75,6 +80,7 @@ div.header {
 	height: 100px;
 	width: 100%;
 	top: 0px;
+	left: 0px;
 	background: #3b3b3b;
 	z-index: 100;
 }

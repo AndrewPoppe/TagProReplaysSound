@@ -299,13 +299,29 @@ let getBombEvents = function(replay) {
 		let frame = getFrame(bomb.time, replay.clock),
 			soundEventName,
 			soundEvent,
-			me = replay[getMe(replay)]
-			distance = getDistance(me.x[frame], me.y[frame], bomb.x, bomb.y);
-		if(frame > 0 && distance <= 280) {
+			me = replay[getMe(replay)],
+			distance = getDistance(me.x[frame], me.y[frame], bomb.x, bomb.y),
+			maxDistance;
+		switch(bomb.type) {
+			case 1: 					// rb
+				maxDistance = 5 * 40;
+				break;
+			case 2: 					// bomb
+				maxDistance = 7 * 40;
+				break;
+			case 3: 					// portal
+				maxDistance = 4 * 40;
+				break;
+			default:
+				throw('Unknown bomb event!');
+				break;
+		}
+		if(frame > 0 && distance <= maxDistance) {
 			soundEventName = "dynamite";
 			soundEvent = Object.assign({}, audioEventLookup[soundEventName]);
 			soundEvent.time = replay.clockMS[frame];
 			soundEvent.distance = distance;
+
 			soundEvents.push(soundEvent);
 		}
 	});
