@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "TagProReplaysSound",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Add sound to your rendered TagPro Replays",
   "permissions": [
     "storage"
